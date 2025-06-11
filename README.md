@@ -1,2 +1,5 @@
 # hello-pyspark
-Hello Pyspark
+##### Install below before running the project.
+```bash
+pip install -r requirements.txt
+```
