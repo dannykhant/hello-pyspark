@@ -1,6 +1,7 @@
 # Spark Concept
 
 - Monolithic vs Distributed
+    - Spark is distributed
 - Features:
     - In-memory
     - Lazy Evaluation
@@ -45,9 +46,13 @@
 - Transformations
     - Narrow vs Wide
     - Narrow Transformation
+        - Fast & efficient
         - Independent, No need to depend on another partition
+        - Spark can chained them into one stage
+        - No shuffling happens
         - eg. filter(), select()
     - Wide Transformation
+        - Slow & resource intensive
         - Dependent on another partition
         - This shuffles the data from partitions and results multiple partitions
         - eg.  groupBy(), join()
