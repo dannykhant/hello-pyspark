@@ -1,0 +1,166 @@
+# Spark Concept
+
+- Monolithic vs Distributed
+- Features:
+    - In-memory
+    - Lazy Evaluation
+    - Fault Tolerant
+    - Partitioning
+    - Streaming
+- Architecture:
+    - Master - Slave
+    - Resource Manager, Driver, Workers (Executor)
+- Cluster Manager:
+    - Standalone
+    - Mesos
+    - Yarn
+    - K8s
+- SparkContext
+    - Replaced by SparkSession
+    - Starting point of Spark
+    - To build connection between cluster manager and driver
+- Driver Node
+    - Application Master Container is installed
+    - Pyspark → Py4J → JVM
+- Worker Node
+    - JVM (executor) run on each worker node
+    - UDF requires Python to run alongside and it will add more load
+- Lazy Evaluation & Action
+    - The actual execution of transformation plan (Spark Job) happens when triggering an action.
+    - Actions: show(), count(), display(), collect()
+- Query Plan
+    - Bottom to Top approach
+    - Jobs are DAG
+    - To view query plan: dataframe.explain()
+- Partitions
+    - Distributed among different executors
+    - RDD serves as logical partitions
+    - 200 partitions by default
+    - 128MB by default per partition
+    - df.rdd.getNumPartitions()
+- RDD
+    - Backbone of Spark
+    - RDD works behind the scene of dataframe
+    - Each transformations create new RDD
+- Transformations
+    - Narrow vs Wide
+    - Narrow Transformation
+        - Independent, No need to depend on another partition
+        - eg. filter(), select()
+    - Wide Transformation
+        - Dependent on another partition
+        - This shuffles the data from partitions and results multiple partitions
+        - eg.  groupBy(), join()
+- Repartition vs Coalesce
+    - Repartition
+        - Need shuffling all the time.
+    - Coalesce
+        - Depending on executors, it might need shuffling sometimes
+- Jobs vs Stages vs Tasks
+    - Job contains multiple stages
+    - Stage contains multiple tasks
+    - Task associates with number of partitions
+        - The extra tasks will be skipped if not required by stage
+- Joins
+    - Reshuffle and create 200 partitions by doing { key % 200 }
+        - This is shuffling state
+        - Group data with same keys from two dataframes into the same partitions
+    - Sort Merge Join
+        - This is default join
+    - Shuffle Hash Join
+        - Create hash table and use it to create joins
+    - Broadcast Join
+        - Deliver the small data to each of worker nodes
+        - This prevents the reshuffling
+- Spark SQL Engine
+    - Logical Plans → Physical Plan → Cost Model → Executors
+        - Unresolved → Resolved → Optimized
+        - Catalog is metadata register and performs an analysis on unresolved logical plan
+        - Cost Model is a funnel to pick the best physical plan
+- Driver Memory Management
+    - JVM Heap Memory
+        - Responsible for most of the tasks - dag, metadata, broadcast variables, task scheduling info
+        - spark.driver.memory
+    - Overhead Memory
+        - Responsible for non-jvm tasks
+        - spark.driver.memoryOverhead - 10% of driver memory [or] 384MB
+    - Driver OOM
+        - OOM when broadcast data is larger than driver memory
+        - OOM when using collect() - collects all the partitions to the driver
+- Executor Memory Management
+    - JVM Heap Memory
+        - Reserved Memory = 300MB fixed amount
+        - Spark Memory Pool = Default 60% of (Total Memory - 300MB)
+            - spark.memory.fraction
+            - Used for transformation and cache
+            - Storage Memory vs Executor Memory
+                - Storage Memory - used for caching (long term memory) 50%
+                    - can borrow memory from executor memory
+                    - does NOT have authority to evict executor memory
+                    - can evict its own storage memory with LRU approach
+                - Executor Memory - used for transformation (short term memory) 50%
+                    - has authority to evict the storage memory (Least Used Cache Data/ LRU Method)
+                - spark.memory.storageFraction
+                    - Flexible boundary
+        - User Memory = Default 40% of (Total Memory - 300MB)
+            - Used for UDFs
+    - Off-heap Memory
+        - Rarely use and not managed by JVM
+        - Default is 0MB
+    - Overhead Memory
+    - Pyspark Memory
+        - Default is 0MB
+    - Executor OOM
+        - Spill data (whole partition) to Disk when requires memory
+        - OOM when a partition size is larger than Executor Memory
+        - Eliminating Skewness
+            - Salting
+                - Create a salt column populated with values randomly
+                - Separate the data with the salt column into multiple partitions
+- Caching
+    - Remove the repetitive recalculation by caching in storage memory
+    - lit() is used to declare constant values
+- Storage Levels
+    - Memory_And_Disk
+        - cache()
+        - This is default
+        - Memory first and spill to disk if memory is not enough
+    - Memory_Only
+        - Stored as deserialized Java objects
+        - Recompute partitions if not enough memory
+    - Disk_Only
+    - Memory_Only_2
+        - 2 times Replicated
+        - For fault tolerance
+    - Off_Heap (experimental)
+        - Uses off-heap memory
+        - spark.memory.offHeap.enabled=true
+    - To unpersist the data
+        - df.unpersist()
+- Edge Node
+    - Your machine
+    - Edge node talks to cluster manager
+- Client vs Cluster Mode
+    - Client Mode
+        - Cluster manager create driver node on client machine
+        - Higher network latency
+        - Used for dev environment
+    - Cluster Mode
+        - Cluster manager create driver node in the cluster
+        - For production
+- Partition Pruning
+    - Partitioning
+        - Optimization technique for Pruning
+        - Create partitions based on column values
+    - Pruning
+        - Go straight to the specific partition required
+- Dynamics Partition Pruning
+    - When Partitioned (df1) joins Non-partitioned (df2)
+        - Broadcast Exchange happens for Dynamic Filter to go to the specific partition
+    - Must add the filter to df2 on the same column of df1’s partition key
+- Adaptive Query Execution (AQE)
+    - Advanced optimization technique
+    - Dynamically coalesce partitions instead of using all 200 partitions
+    - Optimizes Join strategy accordingly during run time by using Query Statistics
+    - Used to fix data skewness
+        - Breaks the big partition into smaller ones
