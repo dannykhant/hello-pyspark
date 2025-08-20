@@ -80,6 +80,15 @@
             dbutils.secrets.get(scope="keyscope", key="app-secret")
             ```
             
+- Secrets Creation
+    
+    ```python
+    from databricks.sdk import WorkspaceClient
+    
+    w = WorkspaceClient()
+    w.secrets.put_secret(scope="sc", key="your_key", string_value="your_key_info")
+    ```
+    
 - %run
     - To run any databricks notebook in a notebook
         
