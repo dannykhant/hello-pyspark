@@ -1,0 +1,27 @@
+# PySpark Scenarios
+
+- **A retail company receives daily updates for its product catalog, including new products, price changes, and discontinued items. Instead of overwriting the entire catalog or simply appending new records, they need to upset the incoming data - updating existing products with the latest information and inserting new products - ensuring the catalog remains accurate and up-to-date in real-time.**
+    - Source - Managed table
+    - Dest - Delta Format (using delta API)
+    - Add guardrail for the initialization
+        - spark.catalog.tableExists()
+        - dbutils.fs.ls()
+    - Merge src to dst
+    - Test with duplicate data and dedup it
+- **A retail company receives daily sales transaction files from multiple store locations in a data lake. Instead of reprocessing all historical data every day, the DE team users spark structured streaming to incrementally load only the newly arrived files into a Delta lake. This ensures timely updates to analytics dashboards while optimizing compute costs and processing time.**
+    - Source - csv files
+    - Dest - Delta Format
+    - Use structured streaming to load into dest
+- **An e-commerce platform receives customer order details from its mobile application in JSON format through a streaming pipeline. The JSON contains nested fields such as customer information, payment details, and a list of purchased items. To store and analyze this data efficiently in a data warehouse, the nested structure must be flattened into a tabular format using Pyspark, ensuring all relevant attributes are readily accessible for reporting and analytics.**
+    - Source - json files
+    - Dest - Delta
+    - Flatten the data into tabular format
+- **In a large scale data processing project, multiple Pyspark notebooks require the same set of custom transformation functions, such as data formatting, null handling, and data validation. Instead of duplicating the code across notebooks, a Python class is created to store these reusable functions. This ensures consistency, reduces maintenance effort, and improves code readability across the project.**
+    - Methods to dedup, null removal
+- **A retail company maintains a product catalog in its data warehouse. Product details such as name category, and price may change over time due to rebranding, category updates, or pricing adjustments. To preserve historical data for accurate reporting and trend analysis, the company needs to implement a slowly changing dimension (SCD) type 2 mechanism in Pyspark, ensuring old records are retained with effective data ranges while new versions are inserted as separate records.**
+    - Source - Managed table
+    - Dest - Managed table
+    - SCD type 2 implementation
+    - Add guardrail for table exists
+- **A retail company processes daily sales transactions from multiple store locations. The data arrives in different formats and needs to be cleaned, validated, and aggregated for business reporting. Using Delta Live Tables pipeline, the raw data is ingested from cloud storage, transformed with quality check, and stored in Delta tables for analytics dashboards, ensuring accuracy and reliability in near real-time.**
+    - Use DLT pipeline
